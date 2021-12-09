@@ -7,14 +7,14 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import mixins
 from rest_framework import generics
 
-from .permissions import AdminOrReadOnly
+from watchlist.api.permissions import AdminOrReadOnly, ReviewOrReadOnly
 from watchlist.models import WatchList, StreamPlatform, Review
 from .serializers import WatchListSerializer, StreamPlatformSerializer, ReviewSerializer
 
 #concrete views
 
 class ReviewCreateView(generics.CreateAPIView):
-    permission_classes = [AdminOrReadOnly]
+    permission_classes = [IsAuthenticated]
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
@@ -29,6 +29,13 @@ class ReviewCreateView(generics.CreateAPIView):
 
         if review_queryset.exists():
             raise ValidationError("you have already reviewed this movie.")
+
+        if movie.num_of_ratings == 0:
+            movie.avg_rating = serializer.validated_data['rating']
+        else:
+            movie.avg_rating = (movie.avg_rating*movie.num_of_ratings+serializer.validated_data['rating'])/(movie.num_of_ratings + 1)
+        movie.num_of_ratings += 1
+        movie.save()
         serializer.save(watchlist=movie, owner=user_review)
 
 
@@ -42,9 +49,9 @@ class ReviewListView(generics.ListCreateAPIView):
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [ReviewOrReadOnly]
 
 #mixins views
 
