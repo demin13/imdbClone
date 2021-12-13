@@ -13,6 +13,14 @@ from .serializers import WatchListSerializer, StreamPlatformSerializer, ReviewSe
 
 #concrete views
 
+class UserReview(generics.ListAPIView):
+
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        username = self.request.GET.get('username', None)
+        return Review.objects.filter(owner__username=username)
+
 class ReviewCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ReviewSerializer
