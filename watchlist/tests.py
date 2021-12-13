@@ -109,7 +109,7 @@ class ReviewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-    def test_request_update(self):
+    def test_review_update(self):
 
         data = {
             "owner":self.user,
@@ -120,4 +120,17 @@ class ReviewTestCase(APITestCase):
         }
 
         response = self.client.put(reverse('review-detail', args=(self.review.id,)), data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_review_list(self):
+
+        response = self.client.get(reverse('review-list', args=(self.watchlist.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_review_indiv(self):
+        response = self.client.get(reverse('review-detail', args=(self.review.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_review_user(self):
+        response = self.client.get('/watch/review?username' + self.user.username)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
